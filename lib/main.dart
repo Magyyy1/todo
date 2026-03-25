@@ -1,23 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:pocketbase/pocketbase.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import 'auth.dart';
 import 'reg.dart';
-late PocketBase pb;
-void main() async {
-WidgetsFlutterBinding.ensureInitialized();
+import 'home.dart';
 
-final prefs = await SharedPreferences.getInstance();
-final store = AsyncAuthStore(
-  save: (String data)async => prefs.setString('pb_auth', data),
-  initial: prefs.getString('pb_auth'),);
+late final PocketBase pb;
 
-  pb = PocketBase("http://127.0.0.1:8090", authStore: store);
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final store = AsyncAuthStore(
+    save: (String data) async {},
+    initial: '',
+  );
+
+  pb = PocketBase(
+    'http://10.0.2.2:8090',
+    authStore: store,
+  );
+
   runApp(MainApp(pb: pb));
 }
 
 class MainApp extends StatelessWidget {
   final PocketBase pb;
+
   const MainApp({super.key, required this.pb});
 
   @override
@@ -25,10 +33,10 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(),
-      initialRoute: '/',
+      home: pb.authStore.isValid ? HomePage(pb: pb) : AuthPage(pb: pb),
       routes: {
-        '/': (context) => const AuthPage(),
-        '/reg': (context) => const RegPage(),
+        '/auth': (context) => AuthPage(pb: pb),
+        '/reg': (context) => RegPage(pb: pb),
       },
     );
   }
